@@ -1,8 +1,5 @@
 ﻿using BitrueApiLibrary.Deserialization;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
 using TradingCommonTypes;
 
 namespace BitrueApiLibrary
@@ -10,26 +7,22 @@ namespace BitrueApiLibrary
     public class BitrueAccountInfo : IAccountInfo
     {
         public string BaseUrl => "https://openapi.bitrue.com/";
-
         public string TradeUrl => "api/v2/myTrades?";
 
         public List<IFilledTrade> GetTrades(IExchangeUser user, string symbol)
         {
             string response;
-            BitrueMarketInfo binanceMarketInfo = new BitrueMarketInfo();
+            BitrueMarketInfo binanceMarketInfo = new();
 
             string url = BaseUrl + TradeUrl;
             string parameters = "recvWindow=10000&symbol=" + symbol + "&limit=1000" + "&timestamp=" + binanceMarketInfo.GetTimestamp();
             url += parameters + "&signature=" + user.Sign(parameters);
 
-            HttpWebRequest HTTPrequest = (HttpWebRequest)WebRequest.Create(url);
-            HTTPrequest.Headers.Add("X-MBX-APIKEY", user.ApiPublicKey);
-            HttpWebResponse HTTPresponse = (HttpWebResponse)HTTPrequest.GetResponse();
-
-            using (StreamReader reader = new StreamReader(HTTPresponse.GetResponseStream()))
+            using (HttpClient client = new HttpClient())
             {
-                response = reader.ReadToEnd();
-            }
+                client.DefaultRequestHeaders.Add("X-MBX-APIKEY", user.ApiPublicKey);
+                response = client.GetAsync(url).Result.Content.ReadAsStringAsync().Result;
+            }          
 
             List<BitrueTradesDeserialization> trades = JsonConvert.DeserializeObject<List<BitrueTradesDeserialization>>(response);
             List<IFilledTrade> listOfTrades = new List<IFilledTrade>();
@@ -38,7 +31,7 @@ namespace BitrueApiLibrary
                 BitrueFilledTrade filledTrade = BitrueFilledTrade.ConvertToFilledTrade(trade);
                 if (filledTrade.IsBuyer)
                 {
-                    filledTrade.Side =  Sides.BUY;
+                    filledTrade.Side = Sides.BUY;
                 }
                 else
                 {

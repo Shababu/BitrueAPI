@@ -1,86 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using BitrueApiLibrary.Deserialization;
+﻿using BitrueApiLibrary.Deserialization;
 using TradingCommonTypes;
 
 namespace BitrueApiLibrary
 {
     public class BitrueTrader : ITrader
     {
-        public void AutoTrade(IExchangeUser user, List<SpotPosition> positions, bool increaseAmount)
+        public ILimitOrder PlaceNewLimitOrder(IExchangeUser user, string symbol, Sides side, decimal quantity, decimal price) 
         {
-            ILimitOrder newLimitOrder;
-            try
-            {
-                foreach (var position in positions)
-                {
-                    if (!position.IsBought && !position.IsBuyOrderPlaced)
-                    {
-                        newLimitOrder = PlaceNewLimitOrder(user, position.Symbol, Sides.BUY, position.Amount, position.BuyingPrice);
-                        UpdateOrderStatusAndId(position, newLimitOrder);
-
-                        position.IsBuyOrderPlaced = true;
-                        position.InspectSpotPosition();
-                    }
-
-                    else if (!position.IsBought && position.IsBuyOrderPlaced)
-                    {
-                        position.Status = GetOrderInfo(user, position.OrderId, position.Symbol).Status;
-                        if (position.Status == "FILLED")
-                        {
-                            position.IsBought = true;
-                            position.InspectSpotPosition();
-
-                            newLimitOrder = PlaceNewLimitOrder(user, position.Symbol, Sides.SELL, position.Amount * 0.997m, position.SellingPrice);
-                            UpdateOrderStatusAndId(position, newLimitOrder);
-                            position.IsSellOrderPlaced = true;
-                            position.InspectSpotPosition();
-                            continue;
-                        }
-                    }
-
-                    else if (position.IsBought && !position.IsSellOrderPlaced)
-                    {
-                        newLimitOrder = PlaceNewLimitOrder(user, position.Symbol, Sides.SELL, position.Amount, position.SellingPrice);
-                        UpdateOrderStatusAndId(position, newLimitOrder);
-                        position.IsSellOrderPlaced = true;
-                        position.InspectSpotPosition();
-                    }
-
-                    if (position.IsBought && position.IsSellOrderPlaced)
-                    {
-                        position.Status = GetOrderInfo(user, position.OrderId, position.Symbol).Status;
-                        if (position.Status == "FILLED")
-                        {
-                            if (increaseAmount == true)
-                            {
-                                IncreaseAmount(position);
-                            }
-                            position.IsBought = position.IsBuyOrderPlaced = position.IsSellOrderPlaced = false;
-                            position.InspectSpotPosition();
-                            newLimitOrder = PlaceNewLimitOrder(user, position.Symbol, Sides.BUY, position.Amount, position.BuyingPrice);
-                            UpdateOrderStatusAndId(position, newLimitOrder);
-
-                            position.IsBuyOrderPlaced = true;
-                            position.InspectSpotPosition();
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-        }
-        public void UpdateOrderStatusAndId(SpotPosition position, ILimitOrder newLimitOrder)
-        {
-            position.OrderId = newLimitOrder.OrderId.ToString();
-            position.Status = newLimitOrder.Status;
-        }
-        public ILimitOrder PlaceNewLimitOrder(IExchangeUser user, string symbol, Sides side, decimal quantity, decimal price) // Готово
-        {
-            BitrueMarketInfo bitrueMarketInfo = new BitrueMarketInfo();
+            BitrueMarketInfo bitrueMarketInfo = new();
+            string response;
 
             string baseUrl = "https://openapi.bitrue.com/";
             string orderUrl = "api/v1/order?";
@@ -88,21 +16,16 @@ namespace BitrueApiLibrary
             string parameters = $"symbol={symbol}&side={side}&type=LIMIT&quantity={quantity.ToString().Replace(",", ".")}&price={price.ToString().Replace(",", ".")}&timestamp=" + bitrueMarketInfo.GetTimestamp();
             url += parameters + "&signature=" + user.Sign(parameters);
 
-            string response;
+            Thread.Sleep(1000);
 
-            HttpWebRequest HTTPrequest = (HttpWebRequest)WebRequest.Create(url);
-            HTTPrequest.Headers.Add("X-MBX-APIKEY", user.ApiPublicKey);
-            HTTPrequest.Method = "POST";
-
-            HttpWebResponse HTTPresponse = (HttpWebResponse)HTTPrequest.GetResponse();
-
-            using (StreamReader reader = new StreamReader(HTTPresponse.GetResponseStream()))
+            using(HttpClient client = new HttpClient())
             {
-                response = reader.ReadToEnd();
+                HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, url);
+                message.Headers.Add("X-MBX-APIKEY", user.ApiPublicKey);
+                response = client.Send(message).Content.ReadAsStringAsync().Result;
             }
 
             BitrueLimitOrder order = BitrueLimitOrder.ConvertToLimitOrder(BitrueLimitOrderDeserialization.DeserializeLimitOrder(response));
-            order.Symbol = symbol;
             order.Side = side.ToString();
             order.Quantity = quantity;
             order.Price = price;
@@ -111,30 +34,27 @@ namespace BitrueApiLibrary
         }
         public ILimitOrder PlaceNewMarketOrder(IExchangeUser user, string symbol, Sides side, decimal quantity)
         {
-            BitrueMarketInfo binanceMarketInfo = new BitrueMarketInfo();
+            BitrueMarketInfo binanceMarketInfo = new();
+            string response;
+
             string baseUrl = "https://openapi.bitrue.com/";
             string orderUrl = "api/v1/order?";
             string url = baseUrl + orderUrl;
             string parameters = $"symbol={symbol}&side={side}&type=MARKET&quantity={quantity.ToString().Replace(",", ".")}&recvWindow=20000&timestamp=" + binanceMarketInfo.GetTimestamp();
             url += parameters + "&signature=" + user.Sign(parameters);
 
-            string response;
-
-            HttpWebRequest HTTPrequest = (HttpWebRequest)WebRequest.Create(url);
-            HTTPrequest.Headers.Add("X-MBX-APIKEY", user.ApiPublicKey);
-            HTTPrequest.Method = "POST";
-            HttpWebResponse HTTPresponse = (HttpWebResponse)HTTPrequest.GetResponse();
-
-            using (StreamReader reader = new StreamReader(HTTPresponse.GetResponseStream()))
+            using (HttpClient client = new HttpClient())
             {
-                response = reader.ReadToEnd();
+                HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, url);
+                message.Headers.Add("X-MBX-APIKEY", user.ApiPublicKey);
+                response = client.Send(message).Content.ReadAsStringAsync().Result;
             }
 
             return BitrueLimitOrder.ConvertToLimitOrder(BitrueLimitOrderDeserialization.DeserializeLimitOrder(response));
         }
-        public ILimitOrder CancelLimitOrder(IExchangeUser user, string symbol, string orderId) // Готово
+        public ILimitOrder CancelLimitOrder(IExchangeUser user, string symbol, string orderId) 
         {
-            BitrueMarketInfo bitrueMarketInfo = new BitrueMarketInfo();
+            BitrueMarketInfo bitrueMarketInfo = new();
             ILimitOrder order = GetOrderInfo(user, orderId, symbol);
 
             string baseUrl = "https://openapi.bitrue.com/";
@@ -145,43 +65,64 @@ namespace BitrueApiLibrary
 
             string response;
 
-            HttpWebRequest HTTPrequest = (HttpWebRequest)WebRequest.Create(url);
-            HTTPrequest.Headers.Add("X-MBX-APIKEY", user.ApiPublicKey);
-            HTTPrequest.Method = "DELETE";
-            HttpWebResponse HTTPresponse = (HttpWebResponse)HTTPrequest.GetResponse();
-
-            using (StreamReader reader = new StreamReader(HTTPresponse.GetResponseStream()))
+            using (HttpClient client = new HttpClient())
             {
-                response = reader.ReadToEnd();
+                HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Delete, url);
+                message.Headers.Add("X-MBX-APIKEY", user.ApiPublicKey);
+                response = client.Send(message).Content.ReadAsStringAsync().Result;
             }
 
             order.Status = "CANCELED";
 
             return order;
         }
-        public List<ILimitOrder> GetOpenOrders(IExchangeUser user, string symbol) // Готово
+        public ILimitOrder GetOrderInfo(IExchangeUser user, string orderId, string symbol) 
         {
-            BitrueMarketInfo bitrueMarketInfo = new BitrueMarketInfo();
+            BitrueMarketInfo bitrueMarketInfo = new();
+            string response;
+
+            string baseUrl = "https://openapi.bitrue.com/";
+            string orderUrl = "api/v1/order?";
+            string url = baseUrl + orderUrl;
+            string parameters = $"symbol={symbol}&orderId={orderId}&recvWindow=10000&timestamp=" + bitrueMarketInfo.GetTimestamp();
+            url += parameters + "&signature=" + user.Sign(parameters);
+
+            using (HttpClient client = new HttpClient())
+            {
+                HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, url);
+                message.Headers.Add("X-MBX-APIKEY", user.ApiPublicKey);
+                response = client.Send(message).Content.ReadAsStringAsync().Result;
+            }
+
+            BitrueLimitOrder orderInfo = BitrueLimitOrder.ConvertToLimitOrder(BitrueLimitOrderDeserialization.DeserializeLimitOrder(response));
+
+            return orderInfo;
+        }
+        public string GetOrderStatus(IExchangeUser user, SpotPosition position, string symbol) 
+        {
+            BitrueTrader trader = new();
+            return trader.GetOrderInfo(user, position.OrderId, symbol).Status;
+        }
+        public List<ILimitOrder> GetOpenOrders(IExchangeUser user, string symbol) 
+        {
+            BitrueMarketInfo bitrueMarketInfo = new();
+            string response;
+
             string baseUrl = "https://openapi.bitrue.com/";
             string orderUrl = "api/v1/openOrders?";
             string url = baseUrl + orderUrl;
             string parameters = $"symbol={symbol}&recvWindow=5000&timestamp=" + bitrueMarketInfo.GetTimestamp();
             url += parameters + "&signature=" + user.Sign(parameters);
 
-            string response;
-
-            HttpWebRequest HTTPrequest = (HttpWebRequest)WebRequest.Create(url);
-            HTTPrequest.Headers.Add("X-MBX-APIKEY", user.ApiPublicKey);
-            HTTPrequest.Method = "GET";
-            HttpWebResponse HTTPresponse = (HttpWebResponse)HTTPrequest.GetResponse();
-
-            using (StreamReader reader = new StreamReader(HTTPresponse.GetResponseStream()))
+            using (HttpClient client = new HttpClient())
             {
-                response = reader.ReadToEnd();
+                HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, url);
+                message.Headers.Add("X-MBX-APIKEY", user.ApiPublicKey);
+                response = client.Send(message).Content.ReadAsStringAsync().Result;
             }
 
             List<BitrueLimitOrderDeserialization> rawOrders = BitrueLimitOrderDeserialization.DeserializeLimitOrders(response);
-            List<ILimitOrder> orders = new List<ILimitOrder>();
+            List<ILimitOrder> orders = new();
 
             foreach (var rawOrder in rawOrders)
             {
@@ -190,42 +131,80 @@ namespace BitrueApiLibrary
 
             return orders;
         }
-        public ILimitOrder GetOrderInfo(IExchangeUser user, string orderId, string symbol)
+        public void PlaceInitialOrders(IExchangeUser user, List<SpotPosition> positions)
         {
-            BitrueMarketInfo bitrueMarketInfo = new BitrueMarketInfo();
-            string baseUrl = "https://openapi.bitrue.com/";
-            string orderUrl = "api/v1/order?";
-            string url = baseUrl + orderUrl;
-            string parameters = $"symbol={symbol}&orderId={orderId}&recvWindow=10000&timestamp=" + bitrueMarketInfo.GetTimestamp();
-            url += parameters + "&signature=" + user.Sign(parameters);
+            ILimitOrder newLimitOrder;
 
-            string response;
-
-            HttpWebRequest HTTPrequest = (HttpWebRequest)WebRequest.Create(url);
-            HTTPrequest.Headers.Add("X-MBX-APIKEY", user.ApiPublicKey);
-            HttpWebResponse HTTPresponse = (HttpWebResponse)HTTPrequest.GetResponse();
-
-            using (StreamReader reader = new StreamReader(HTTPresponse.GetResponseStream()))
+            foreach (var position in positions)
             {
-                response = reader.ReadToEnd();
+                if (!position.IsBought && !position.IsBuyOrderPlaced)
+                {
+                    newLimitOrder = PlaceNewLimitOrder(user, position.Symbol, Sides.BUY, position.Amount, position.BuyingPrice);
+                    UpdateOrderStatusAndId(position, newLimitOrder);
+                    position.IsBuyOrderPlaced = true;
+                    position.InspectSpotPosition(); // Shoots an event that will inform user about order execution
+                }
+
+                else if (position.IsBought && !position.IsSellOrderPlaced)
+                {
+                    newLimitOrder = PlaceNewLimitOrder(user, position.Symbol, Sides.SELL, position.Amount, position.SellingPrice);
+                    UpdateOrderStatusAndId(position, newLimitOrder);
+                    position.IsSellOrderPlaced = true;
+                    position.InspectSpotPosition();
+                }
             }
-            BitrueLimitOrder orderInfo = BitrueLimitOrder.ConvertToLimitOrder(BitrueLimitOrderDeserialization.DeserializeLimitOrder(response));
-            return orderInfo;
         }
-        public void IncreaseAmount(SpotPosition position)
+        public void AutoTrade(IExchangeUser user, List<SpotPosition> positions, bool increaseAmount)
+        {
+            ILimitOrder newLimitOrder;
+            var openOrders = GetOpenOrders(user, positions[0].Symbol);
+
+            foreach (var position in positions)
+            {
+                var currentPosition = openOrders.Where(o => o.OrderId.ToString() == position.OrderId).FirstOrDefault();
+
+                if (currentPosition == null)
+                {
+                    if (position.IsBought)
+                    {
+                        position.IsBought = position.IsBuyOrderPlaced = position.IsSellOrderPlaced = false;
+                        position.InspectSpotPosition();
+                        if (increaseAmount == true)
+                        {
+                            IncreaseAmount(position);
+                        }
+                        newLimitOrder = PlaceNewLimitOrder(user, position.Symbol, Sides.BUY, position.Amount, position.BuyingPrice);
+                        UpdateOrderStatusAndId(position, newLimitOrder);
+                        position.IsBuyOrderPlaced = true;
+                        position.InspectSpotPosition();
+                    }
+                    else
+                    {
+                        position.IsBought = true;
+                        position.InspectSpotPosition();
+                        newLimitOrder = PlaceNewLimitOrder(user, position.Symbol, Sides.SELL, position.Amount, position.SellingPrice);
+                        UpdateOrderStatusAndId(position, newLimitOrder);
+                        position.IsSellOrderPlaced = true;
+                        position.InspectSpotPosition();
+                    }
+                }
+            }
+        }
+        private static void UpdateOrderStatusAndId(SpotPosition position, ILimitOrder newLimitOrder)
+        {
+            position.OrderId = newLimitOrder.OrderId.ToString();
+            position.Status = newLimitOrder.Status;
+        }
+        private static void IncreaseAmount(SpotPosition position)
         {
             decimal newDollarAmount = (((position.Amount * position.SellingPrice) - (position.BuyingPrice * position.Amount)) * .994M) + (position.BuyingPrice * position.Amount);
 
             position.Amount = newDollarAmount / position.BuyingPrice;
             string middleValueInt = position.Amount.ToString();
-            string middleValueDecimal = middleValueInt.Split(',')[1].Substring(0, 1);
+            string middleValueDecimal = middleValueInt.Split(',')[1][..1];
+
             middleValueInt = middleValueInt.Split(',')[0];
             position.Amount = Convert.ToDecimal((middleValueInt + "," + middleValueDecimal));
-        }
-        public string GetOrderStatus(IExchangeUser user, SpotPosition position, string symbol)
-        {
-            BitrueTrader trader = new BitrueTrader();
-            return trader.GetOrderInfo(user, position.OrderId, symbol).Status;
         }
     }
 }

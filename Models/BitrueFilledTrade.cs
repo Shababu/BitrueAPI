@@ -1,5 +1,4 @@
-﻿using System;
-using TradingCommonTypes;
+﻿using TradingCommonTypes;
 using BitrueApiLibrary.Deserialization;
 
 namespace BitrueApiLibrary
@@ -22,7 +21,7 @@ namespace BitrueApiLibrary
             BitrueFilledTrade filledTrade = new BitrueFilledTrade()
             {
                 OrderId = Convert.ToInt64(trade.OrderId),
-                Symbol = trade.Symbol,
+                Symbol = trade.Symbol.ToUpper(),
                 Price = Convert.ToDecimal(trade.Price.Replace('.', ',')),
                 Qty = Convert.ToDecimal(trade.Qty.Replace('.', ',')),
                 QuoteQty = Convert.ToDecimal(trade.Price.Replace('.', ',')) * Convert.ToDecimal(trade.Qty.Replace('.', ',')),
@@ -32,13 +31,22 @@ namespace BitrueApiLibrary
                 IsMaker = Convert.ToBoolean(trade.IsMaker),
             };
 
+            if (filledTrade.IsBuyer)
+            {
+                filledTrade.Side = Sides.BUY;
+            }
+            else
+            {
+                filledTrade.Side = Sides.SELL;
+            }
+
             return filledTrade;
         }
 
         public override string ToString()
         {
             return string.Format($"OrderId: {OrderId}, Symbol: {Symbol}, Price: {Price}, Qty: {Qty}, QuoteQty: {QuoteQty}, Commission: {Commission}, " +
-                $"TimeStamp: {TimeStamp}, IsBuyer: {IsBuyer}, IsMaker: {IsMaker}");
+                $"TimeStamp: {TimeStamp}, IsBuyer: {IsBuyer}, IsMaker: {IsMaker}, Side: {Side}");
         }
     }
 }

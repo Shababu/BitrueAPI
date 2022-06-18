@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 
 namespace BitrueApiLibrary.Deserialization
 {
@@ -20,13 +18,13 @@ namespace BitrueApiLibrary.Deserialization
         public string ConvertedTime { get; set; }
 
 
-        public static BitrueLimitOrderDeserialization DeserializeLimitOrder(string jsonString)
+        internal static BitrueLimitOrderDeserialization DeserializeLimitOrder(string jsonString)
         {
             BitrueLimitOrderDeserialization order = JsonConvert.DeserializeObject<BitrueLimitOrderDeserialization>(jsonString);
             return order;
         }
 
-        public static List<BitrueLimitOrderDeserialization> DeserializeLimitOrders(string jsonString)
+        internal static List<BitrueLimitOrderDeserialization> DeserializeLimitOrders(string jsonString)
         {
             object[] trades = JsonConvert.DeserializeObject<object[]>(jsonString);
             List<BitrueLimitOrderDeserialization> orders = new List<BitrueLimitOrderDeserialization>();
@@ -44,7 +42,7 @@ namespace BitrueApiLibrary.Deserialization
             return $"{ConvertedTime}\n{Symbol}\n{OrderId}\n{Price}\n{OrigQty}\n{ExecutedQty}\n{Status}\n{Type}\n{Side}\n{StopPrice}\n";
         }
 
-        public static string ConvertOrderTime(string timeString)
+        internal static string ConvertOrderTime(string timeString)
         {
             return (new DateTime(1970, 1, 1) + TimeSpan.FromMilliseconds(Convert.ToInt64(timeString))).ToString();
         }

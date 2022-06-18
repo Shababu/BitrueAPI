@@ -6,7 +6,7 @@ namespace BitrueApiLibrary.Deserialization
     {
         public BitrueSymbolsInfoDeserialization[] Symbols { get; set; }
 
-        public static BitrueExchangeInfoDeserialization DeserializeExchangeInfo(string json)
+        internal static BitrueExchangeInfoDeserialization DeserializeExchangeInfo(string json)
         {
             BitrueExchangeInfoDeserialization symbols = JsonConvert.DeserializeObject<BitrueExchangeInfoDeserialization>(json);
             return symbols;

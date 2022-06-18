@@ -1,8 +1,5 @@
 ﻿using BinanceApiLibrary;
 using BitrueApiLibrary.Deserialization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using TradingCommonTypes;
 
 namespace BitrueApiLibrary
@@ -28,13 +25,7 @@ namespace BitrueApiLibrary
 
             return bitrueCrypto;
         }
-
-        public override string ToString()
-        {
-            return string.Format($"Asset: {Asset}, Total: {Total}, Free: {Free}, Locked: {Locked}, Rub Value: {RubValue}");
-        }
-
-        public static void CountRubValue(List<ICryptoBalance> balances)
+        internal static void CountRubValue(List<ICryptoBalance> balances)
         {
             BitrueMarketInfo bitrueMarketInfo = new BitrueMarketInfo();
             List<IAssetStatus> allPairs = new BitrueMarketInfo().Get24HourStatOnAllAssets();
@@ -44,24 +35,30 @@ namespace BitrueApiLibrary
             {
                 if (balance.Asset == "RUB")
                 {
-                    balance.RubValue = balance.Total;
+                    balance.RubValue = Math.Round(balance.Total, 2);
                 }
                 else if (balance.Asset.Contains("USD"))
                 {
-                    balance.RubValue = balance.Total * rubPrice;
+                    balance.RubValue = Math.Round(balance.Total * rubPrice, 2);
                 }
                 else
                 {
                     try
                     {
                         balance.RubValue = allPairs.Where(crypto => crypto.Symbol == balance.Asset + "USDT").First().LastPrice * balance.Total * rubPrice;
+                        balance.RubValue = Math.Round(balance.RubValue, 2);
                     }
-                    catch (InvalidOperationException)
+                    catch (Exception)
                     {
-                        continue;
+                        balance.RubValue = 0;
                     }
                 }
             }
+        }
+
+        public override string ToString()
+        {
+            return string.Format($"Asset: {Asset}, Total: {Total}, Free: {Free}, Locked: {Locked}, Rub Value: {RubValue}");
         }
     }
 }

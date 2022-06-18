@@ -1,12 +1,11 @@
 ﻿using BitrueApiLibrary.Deserialization;
-using System;
 using TradingCommonTypes;
 
 namespace BitrueApiLibrary
 {
-    public class BitrueAssetStatus : IAssetStatus // Готово
+    public class BitrueAssetStatus : IAssetStatus
     {
-        public string Symbol { get; set; }
+        public string Symbol { get; set; } = "";
         public decimal PriceChange { get; set; }
         public float PriceChangePercent { get; set; }
         public decimal WeightedAvgPrice { get; set; }
@@ -21,11 +20,11 @@ namespace BitrueApiLibrary
 
         internal static BitrueAssetStatus ConvertToAssetStatus(BitrueAssetStatsDeserialization stats)
         {
-            BitrueAssetStatus assetStatus = new BitrueAssetStatus()
+            BitrueAssetStatus assetStatus = new()
             {
-                Symbol = stats.Symbol,
+                Symbol = stats.Symbol ?? "",
                 PriceChange = stats.PriceChange != null ? Convert.ToDecimal(stats.PriceChange.Replace('.', ',')) : 0,
-                PriceChangePercent = Convert.ToSingle(stats.PriceChangePercent.Replace('.', ',')),
+                PriceChangePercent = Convert.ToSingle(stats.PriceChangePercent != null ? stats.PriceChangePercent.Replace('.', ',') : 0),
                 WeightedAvgPrice = stats.WeightedAvgPrice != null ? Convert.ToDecimal(stats.WeightedAvgPrice.Replace('.', ',')) : 0,
                 PrevClosePrice = stats.PrevClosePrice != null ? Convert.ToDecimal(stats.PrevClosePrice.Replace('.', ',')) : 0,
                 LastPrice = stats.LastPrice != null ? Convert.ToDecimal(stats.LastPrice.Replace('.', ',')) : 0,

@@ -1,7 +1,4 @@
 ﻿using BitrueApiLibrary.Deserialization;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
 using TradingCommonTypes;
 
 namespace BitrueApiLibrary
@@ -9,7 +6,6 @@ namespace BitrueApiLibrary
     public class BitrueWalletInfo : IWalletInfo
     {
         public string BaseUrl => "https://openapi.bitrue.com/";
-
         public string AccountInfoUrl => "api/v1/account?";
 
         public decimal GetAccountTotalBalance(List<ICryptoBalance> balances)
@@ -23,23 +19,19 @@ namespace BitrueApiLibrary
 
             return totalBalance;
         }
-
         public List<ICryptoBalance> GetWalletInfo(IExchangeUser user)
         {
-            string response;
             BitrueMarketInfo bitrueMarketInfo = new BitrueMarketInfo();
+            string response;
 
             string url = BaseUrl + AccountInfoUrl;
             string parameters = "recvWindow=10000&timestamp=" + bitrueMarketInfo.GetTimestamp();
             url += parameters + "&signature=" + user.Sign(parameters);
 
-            HttpWebRequest HTTPrequest = (HttpWebRequest)WebRequest.Create(url);
-            HTTPrequest.Headers.Add("X-MBX-APIKEY", user.ApiPublicKey);
-            HttpWebResponse HTTPresponse = (HttpWebResponse)HTTPrequest.GetResponse();
-
-            using (StreamReader reader = new StreamReader(HTTPresponse.GetResponseStream()))
+            using (HttpClient client = new HttpClient())
             {
-                response = reader.ReadToEnd();
+                client.DefaultRequestHeaders.Add("X-MBX-APIKEY", user.ApiPublicKey);
+                response = client.GetAsync(url).Result.Content.ReadAsStringAsync().Result;
             }
 
             List<BitrueAccountBalanceDeserialization> rawInfo = BitrueAccountWalletDeserialization.DeserializeWalletInfo(response);

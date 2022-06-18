@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.IO;
-using BitrueApiLibrary.Deserialization;
+﻿using BitrueApiLibrary.Deserialization;
 using TradingCommonTypes;
+using System.Text;
 
 namespace BitrueApiLibrary
 {
@@ -60,19 +57,27 @@ namespace BitrueApiLibrary
         public IExchangeInfo GetExchangeInfo()
         {
             string url = "https://openapi.bitrue.com/api/v1/exchangeInfo";
-
-            HttpWebRequest httpRequest = (HttpWebRequest)WebRequest.Create(url);
-            HttpWebResponse httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-
             string response;
 
-            using (StreamReader reader = new StreamReader(httpResponse.GetResponseStream()))
+            using(HttpClient client = new HttpClient())
             {
-                response = reader.ReadToEnd();
+                response = client.GetAsync(url).Result.Content.ReadAsStringAsync().Result;
             }
 
             BitrueExchangeInfoDeserialization symbols = BitrueExchangeInfoDeserialization.DeserializeExchangeInfo(response);
             return ConvertToExchangeInfo(symbols);
+        }
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < ExchangeSymbols.Count; i++)
+            {
+                sb.Append($"Symbol: {ExchangeSymbols[i].Symbol}, Base Asset: {ExchangeSymbols[i].BaseAsset}, " +
+                    $"Quote Asset: {ExchangeSymbols[i].QuoteAsset}, QuotePrecision: {ExchangeSymbolsInfo[i].QuotePrecision}\n");
+            }
+
+            return sb.ToString();
         }
     }
 }
