@@ -29,12 +29,12 @@ namespace BitrueApiLibrary
                     Filters = new List<ISymbolFilter>()                    
                 };
 
-                foreach(var filter in symbol.Filters)
+                foreach (var filter in symbol.Filters)
                 {
                     symbolInfo.Filters.Add(new BitrueSymbolFilter
                     {
                         FilterType = filter.FilterType,
-                        MinPrice = filter.MinPrice is null ? 0 : Convert.ToDecimal(filter.MinPrice.Replace('.',',')),
+                        MinPrice = filter.MinPrice is null ? 0 : Convert.ToDecimal(filter.MinPrice.Replace('.', ',')),
                         MaxPrice = filter.MaxPrice is null ? 0 : Convert.ToDecimal(filter.MaxPrice.Replace('.', ',')),
                         PriceScale = filter.PriceScale is null ? 0 : Convert.ToDecimal(filter.PriceScale.Replace('.', ',')),
                         MinQty = filter.MinQty is null ? 0 : Convert.ToDecimal(filter.MinQty.Replace('.', ',')),
@@ -59,7 +59,7 @@ namespace BitrueApiLibrary
             string url = "https://openapi.bitrue.com/api/v1/exchangeInfo";
             string response;
 
-            using(HttpClient client = new HttpClient())
+            using (HttpClient client = new HttpClient()) 
             {
                 response = client.GetAsync(url).Result.Content.ReadAsStringAsync().Result;
             }

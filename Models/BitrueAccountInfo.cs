@@ -12,10 +12,10 @@ namespace BitrueApiLibrary
         public List<IFilledTrade> GetTrades(IExchangeUser user, string symbol)
         {
             string response;
-            BitrueMarketInfo binanceMarketInfo = new();
+            BitrueMarketInfo bitrueMarketInfo = new();
 
             string url = BaseUrl + TradeUrl;
-            string parameters = "recvWindow=10000&symbol=" + symbol + "&limit=1000" + "&timestamp=" + binanceMarketInfo.GetTimestamp();
+            string parameters = "recvWindow=10000&symbol=" + symbol + "&limit=1000" + "&timestamp=" + bitrueMarketInfo.GetTimestamp(DateTime.UtcNow);
             url += parameters + "&signature=" + user.Sign(parameters);
 
             using (HttpClient client = new HttpClient())

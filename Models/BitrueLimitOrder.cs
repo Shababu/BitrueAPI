@@ -1,5 +1,4 @@
 ﻿using BitrueApiLibrary.Deserialization;
-using System;
 using TradingCommonTypes;
 
 namespace BitrueApiLibrary
@@ -16,6 +15,7 @@ namespace BitrueApiLibrary
         public DateTime Time { get; set; }
 
         public BitrueLimitOrder() { }
+
         public BitrueLimitOrder(string symbol, Sides side, decimal quantity, decimal price)
         {
             Symbol = symbol;

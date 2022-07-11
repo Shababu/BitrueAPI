@@ -13,12 +13,12 @@ namespace BitrueApiLibrary
             string baseUrl = "https://openapi.bitrue.com/";
             string orderUrl = "api/v1/order?";
             string url = baseUrl + orderUrl;
-            string parameters = $"symbol={symbol}&side={side}&type=LIMIT&quantity={quantity.ToString().Replace(",", ".")}&price={price.ToString().Replace(",", ".")}&timestamp=" + bitrueMarketInfo.GetTimestamp();
+            string parameters = $"symbol={symbol}&side={side}&type=LIMIT&quantity={quantity.ToString().Replace(",", ".")}&price={price.ToString().Replace(",", ".")}&timestamp=" + bitrueMarketInfo.GetTimestamp(DateTime.UtcNow);
             url += parameters + "&signature=" + user.Sign(parameters);
 
             Thread.Sleep(1000);
 
-            using(HttpClient client = new HttpClient())
+            using (HttpClient client = new HttpClient()) 
             {
                 HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, url);
                 message.Headers.Add("X-MBX-APIKEY", user.ApiPublicKey);
@@ -34,13 +34,13 @@ namespace BitrueApiLibrary
         }
         public ILimitOrder PlaceNewMarketOrder(IExchangeUser user, string symbol, Sides side, decimal quantity)
         {
-            BitrueMarketInfo binanceMarketInfo = new();
+            BitrueMarketInfo bitrueMarketInfo = new();
             string response;
 
             string baseUrl = "https://openapi.bitrue.com/";
             string orderUrl = "api/v1/order?";
             string url = baseUrl + orderUrl;
-            string parameters = $"symbol={symbol}&side={side}&type=MARKET&quantity={quantity.ToString().Replace(",", ".")}&recvWindow=20000&timestamp=" + binanceMarketInfo.GetTimestamp();
+            string parameters = $"symbol={symbol}&side={side}&type=MARKET&quantity={quantity.ToString().Replace(",", ".")}&recvWindow=20000&timestamp=" + bitrueMarketInfo.GetTimestamp(DateTime.UtcNow);
             url += parameters + "&signature=" + user.Sign(parameters);
 
             using (HttpClient client = new HttpClient())
@@ -60,7 +60,7 @@ namespace BitrueApiLibrary
             string baseUrl = "https://openapi.bitrue.com/";
             string orderUrl = "api/v1/order?";
             string url = baseUrl + orderUrl;
-            string parameters = $"symbol={symbol}&orderId={orderId}&timestamp=" + bitrueMarketInfo.GetTimestamp();
+            string parameters = $"symbol={symbol}&orderId={orderId}&timestamp=" + bitrueMarketInfo.GetTimestamp(DateTime.UtcNow);
             url += parameters + "&signature=" + user.Sign(parameters);
 
             string response;
@@ -84,7 +84,7 @@ namespace BitrueApiLibrary
             string baseUrl = "https://openapi.bitrue.com/";
             string orderUrl = "api/v1/order?";
             string url = baseUrl + orderUrl;
-            string parameters = $"symbol={symbol}&orderId={orderId}&recvWindow=10000&timestamp=" + bitrueMarketInfo.GetTimestamp();
+            string parameters = $"symbol={symbol}&orderId={orderId}&recvWindow=10000&timestamp=" + bitrueMarketInfo.GetTimestamp(DateTime.UtcNow);
             url += parameters + "&signature=" + user.Sign(parameters);
 
             using (HttpClient client = new HttpClient())
@@ -94,9 +94,7 @@ namespace BitrueApiLibrary
                 response = client.Send(message).Content.ReadAsStringAsync().Result;
             }
 
-            BitrueLimitOrder orderInfo = BitrueLimitOrder.ConvertToLimitOrder(BitrueLimitOrderDeserialization.DeserializeLimitOrder(response));
-
-            return orderInfo;
+            return BitrueLimitOrder.ConvertToLimitOrder(BitrueLimitOrderDeserialization.DeserializeLimitOrder(response));
         }
         public string GetOrderStatus(IExchangeUser user, SpotPosition position, string symbol) 
         {
@@ -111,7 +109,7 @@ namespace BitrueApiLibrary
             string baseUrl = "https://openapi.bitrue.com/";
             string orderUrl = "api/v1/openOrders?";
             string url = baseUrl + orderUrl;
-            string parameters = $"symbol={symbol}&recvWindow=5000&timestamp=" + bitrueMarketInfo.GetTimestamp();
+            string parameters = $"symbol={symbol}&recvWindow=5000&timestamp=" + bitrueMarketInfo.GetTimestamp(DateTime.UtcNow);
             url += parameters + "&signature=" + user.Sign(parameters);
 
             using (HttpClient client = new HttpClient())

@@ -1,14 +1,41 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageIcon>bitrue.jpg</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Authors>Shababus</Authors>
+    <Company>Shababus</Company>
+    <Product>BitrueAPI</Product>
+    <Description>Library that allows users to accsess and trade on their bitrue account</Description>
+    <Copyright>Copyright (c) Shababus 2022</Copyright>
+    <RepositoryUrl>https://github.com/Shababu/BitrueAPI</RepositoryUrl>
+    <PackageTags>Binance API Trade Trading Crypto Bitcoin XRP</PackageTags>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <FileVersion>1.0.2</FileVersion>
+    <Version>1.0.2</Version>
+    <PackageId>BitrueAPI</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BinanceAPI" Version="1.0.1" />
-    <PackageReference Include="TradingCommonTypes" Version="1.1.2" />
+    <None Include="..\..\images\bitrue.jpg">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BinanceAPI" Version="1.0.3" />
+    <PackageReference Include="TradingCommonTypes" Version="1.1.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -6,7 +6,19 @@ namespace BitrueApiLibrary
 {
     public class BitrueMarketInfo : IMarketInfo
     {
-        public decimal GetPrice(string pairSymbol = "XDCXRP") 
+        public IAssetStatus Get24HourStatOnAsset(string symbol) 
+        {
+            string url = $"https://openapi.bitrue.com/api/v1/ticker/24hr?symbol={symbol}";
+            string response;
+
+            using (HttpClient client = new())
+            {
+                response = client.GetAsync(url).Result.Content.ReadAsStringAsync().Result;
+            }
+
+            return BitrueAssetStatus.ConvertToAssetStatus(BitrueAssetStatsDeserialization.DeserializeAssetStats(response));
+        }
+        public decimal GetPrice(string pairSymbol)
         {
             string url = $"https://openapi.bitrue.com/api/v1/ticker/price?symbol={pairSymbol}";
             string response;
@@ -23,18 +35,6 @@ namespace BitrueApiLibrary
                 return currentPrice.Price;
             }
             else return 0;
-        }
-        public IAssetStatus Get24HourStatOnAsset(string symbol) 
-        {
-            string url = $"https://openapi.bitrue.com/api/v1/ticker/24hr?symbol={symbol}";
-            string response;
-
-            using(HttpClient client = new())
-            {
-                response = client.GetAsync(url).Result.Content.ReadAsStringAsync().Result;
-            }
-
-            return BitrueAssetStatus.ConvertToAssetStatus(BitrueAssetStatsDeserialization.DeserializeAssetStats(response));
         }
         public List<IAssetStatus> Get24HourStatOnAllAssets()
         {
@@ -90,9 +90,9 @@ namespace BitrueApiLibrary
             BitrueCandlestickDeserialization candles = BitrueCandlestickDeserialization.DeserializeCandlestick(response);
             return BitrueCandle.ConvertToCandle(candles);                       
         }
-        internal string GetTimestamp()
+        internal string GetTimestamp(DateTime dateTime)
         {
-            return Math.Round((DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalMilliseconds).ToString();
+            return Math.Round((dateTime - new DateTime(1970, 1, 1)).TotalMilliseconds).ToString();
         }
     }
 }
