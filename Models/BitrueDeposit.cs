@@ -1,11 +1,12 @@
 ﻿using BitrueApiLibrary.Deserialization;
 using System.Text;
+using TradingCommonTypes;
 
 namespace BitrueApiLibrary
 {
-    public class BitrueDeposit
+    public class BitrueDeposit : IDeposit
     {
-        public long Id { get; set; }
+        public string Id { get; set; }
         public decimal Amount { get; set; }
         public string TransactionFee { get; set; }
         public string Coin { get; set; }
@@ -42,7 +43,7 @@ namespace BitrueApiLibrary
         {
             BitrueDeposit deposit = new BitrueDeposit()
             {
-                Id = Convert.ToInt64(depositRaw.Id),
+                Id = depositRaw.Id,
                 Coin = depositRaw.Symbol,
                 Amount = Convert.ToDecimal(depositRaw.Amount.Replace('.', ',')),
                 TransactionFee = depositRaw.Fee,

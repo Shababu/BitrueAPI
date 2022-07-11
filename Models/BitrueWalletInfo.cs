@@ -5,15 +5,14 @@ namespace BitrueApiLibrary
 {
     public class BitrueWalletInfo : IWalletInfo
     {
-        public string BaseUrl => "https://openapi.bitrue.com/";
-        public string AccountInfoUrl => "api/v1/account?";
+        private string baseUrl = "https://openapi.bitrue.com/";
 
         public List<ICryptoBalance> GetWalletInfo(IExchangeUser user)
         {
             BitrueMarketInfo bitrueMarketInfo = new BitrueMarketInfo();
             string response;
 
-            string url = BaseUrl + AccountInfoUrl;
+            string url = baseUrl + "api/v1/account?";
             string parameters = "recvWindow=10000&timestamp=" + bitrueMarketInfo.GetTimestamp(DateTime.UtcNow);
             url += parameters + "&signature=" + user.Sign(parameters);
 
@@ -46,9 +45,9 @@ namespace BitrueApiLibrary
 
             return totalBalance;
         }
-        public List<BitrueDeposit> GetRecentDeposits(IExchangeUser user, string coin, DateTime startTime = default(DateTime), DateTime endTime = default(DateTime))
+        public List<IDeposit> GetRecentDeposits(IExchangeUser user, string coin, DateTime startTime = default(DateTime), DateTime endTime = default(DateTime))
         {
-            string url = BaseUrl + "api/v1/deposit/history?";
+            string url = baseUrl + "api/v1/deposit/history?";
             BitrueMarketInfo bitrueMarketInfo = new BitrueMarketInfo();
 
             string response;
@@ -86,7 +85,7 @@ namespace BitrueApiLibrary
             response = response.Trim('}');
 
             List<BitrueDepositDeserialization> rawDeposits = BitrueDepositDeserialization.DeserializeDeposit(response);
-            List<BitrueDeposit> result = new List<BitrueDeposit>();
+            List<IDeposit> result = new List<IDeposit>();
 
             foreach (var rawDeposit in rawDeposits)
             {
