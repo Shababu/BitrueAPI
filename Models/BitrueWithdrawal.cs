@@ -4,7 +4,7 @@ using TradingCommonTypes;
 
 namespace BitrueApiLibrary
 {
-    public class BitrueDeposit : IDeposit
+    internal class BitrueWithdrawal : IWithdrawal
     {
         public string Id { get; set; }
         public decimal Amount { get; set; }
@@ -14,31 +14,35 @@ namespace BitrueApiLibrary
         public string Address { get; set; }
         public string TxId { get; set; }
         public DateTime ApplyTime { get; set; }
+        public decimal PayAmount { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public string AddressTo { get; set; }
+        public string AddressFrom { get; set; }
         public int Confirmations { get; set; }
         public string TagType { get; set; }
 
-        internal static BitrueDeposit ConvertToDeposit(BitrueDepositDeserialization depositRaw)
+
+        internal static BitrueWithdrawal ConvertToWithdrawal(BitrueWithdrawalDeserialization withdrawalRaw)
         {
-            BitrueDeposit deposit = new BitrueDeposit()
+            BitrueWithdrawal withdrawal = new BitrueWithdrawal()
             {
-                Id = depositRaw.Id,
-                Coin = depositRaw.Symbol,
-                Amount = Convert.ToDecimal(depositRaw.Amount.Replace('.', ',')),
-                TransactionFee = depositRaw.Fee,
-                Address = depositRaw.AddressFrom,
-                TxId = depositRaw.Txid,
-                ApplyTime = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(depositRaw.CreatedAt)),
-                Status = Convert.ToInt32(depositRaw.Status),
-                UpdatedAt = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(depositRaw.UpdatedAt)),
-                AddressTo = depositRaw.AddressTo,
-                Confirmations = Convert.ToInt32(depositRaw.Confirmations),
-                TagType = depositRaw.TagType,
+                Id = withdrawalRaw.Id,
+                Amount = Convert.ToDecimal(withdrawalRaw.Amount.Replace('.', ',')),
+                TransactionFee = withdrawalRaw.Fee,
+                Coin = withdrawalRaw.Symbol.ToUpper(),
+                Status = Convert.ToInt32(withdrawalRaw.Status),
+                Address = withdrawalRaw.AddressTo,
+                TxId = withdrawalRaw.Txid,
+                ApplyTime = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(withdrawalRaw.CreatedAt)),
+                PayAmount = Convert.ToDecimal(withdrawalRaw.PayAmount.Replace('.', ',')),
+                UpdatedAt = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(withdrawalRaw.UpdatedAt)),
+                AddressFrom = withdrawalRaw.AddressFrom,
+                Confirmations = Convert.ToInt32(withdrawalRaw.Confirmations),
+                TagType = withdrawalRaw.TagType,
             };
 
-            return deposit;
+            return withdrawal;
         }
+
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
@@ -58,17 +62,20 @@ namespace BitrueApiLibrary
             sb.Append(TxId);
             sb.Append($"\nApplyTime: ");
             sb.Append(ApplyTime);
+            sb.Append($"\nPayAmount: ");
+            sb.Append(PayAmount);
             sb.Append($"\nUpdatedAt: ");
             sb.Append(UpdatedAt);
-            sb.Append($"\nAddressTo: ");
-            sb.Append(AddressTo);
+            sb.Append($"\nAddressFrom: ");
+            sb.Append(AddressFrom);
             sb.Append($"\nConfirmations: ");
             sb.Append(Confirmations);
             sb.Append($"\nTagType: ");
             sb.Append(TagType);
-            sb.Append($"\n");
+            sb.Append("\n");
 
             return sb.ToString();
         }
+
     }
 }

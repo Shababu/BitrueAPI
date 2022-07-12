@@ -3,12 +3,13 @@ using Newtonsoft.Json;
 
 namespace BitrueApiLibrary.Deserialization
 {
-    internal class BitrueDepositDeserialization
+    internal class BitrueWithdrawalDeserialization
     {
         public string Id { get; set; }
         public string Symbol { get; set; }
         public string Amount { get; set; }
         public string Fee { get; set; }
+        public string PayAmount { get; set; }
         public string CreatedAt { get; set; }
         public string UpdatedAt { get; set; }
         public string AddressFrom { get; set; }
@@ -18,9 +19,9 @@ namespace BitrueApiLibrary.Deserialization
         public string Status { get; set; }
         public string TagType { get; set; }
 
-        internal static List<BitrueDepositDeserialization> DeserializeDeposit(string jsonString)
+        internal static List<BitrueWithdrawalDeserialization> DeserializeWithdrawal(string jsonString)
         {
-            return JsonConvert.DeserializeObject<List<BitrueDepositDeserialization>>(jsonString);
+            return JsonConvert.DeserializeObject<List<BitrueWithdrawalDeserialization>>(jsonString);
         }
         public override string ToString()
         {
@@ -33,6 +34,8 @@ namespace BitrueApiLibrary.Deserialization
             sb.Append(Amount);
             sb.Append($"\nFee: ");
             sb.Append(Fee);
+            sb.Append($"\nPayAmount: ");
+            sb.Append(PayAmount);
             sb.Append($"\nCreatedAt: ");
             sb.Append(CreatedAt);
             sb.Append($"\nUpdatedAt: ");

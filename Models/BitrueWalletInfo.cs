@@ -94,5 +94,53 @@ namespace BitrueApiLibrary
 
             return result;
         }
+        public List<IWithdrawal> GetRecentWithdrawals(IExchangeUser user, string coin, DateTime startTime = default(DateTime), DateTime endTime = default(DateTime))
+        {
+            string url = baseUrl + "api/v1/withdraw/history?";
+            BitrueMarketInfo binanceMarketInfo = new BitrueMarketInfo();
+            string response;
+
+            string parameters = "recvWindow=10000&timestamp=" + binanceMarketInfo.GetTimestamp(DateTime.UtcNow);
+            parameters += $"&coin={coin}&status=5";
+          
+            if (startTime != default(DateTime))
+            {
+                parameters += $"&startTime={binanceMarketInfo.GetTimestamp(startTime)}";
+
+                if (endTime == default(DateTime) || endTime < startTime)
+                {
+                    endTime = startTime.AddDays(90);
+                }
+                else
+                {
+                    if (endTime.Subtract(startTime).Days > 90)
+                    {
+                        endTime = startTime.AddDays(90);
+                    }
+                }
+                parameters += $"&endTime={binanceMarketInfo.GetTimestamp(endTime)}";
+            }
+
+            url += parameters + "&signature=" + user.Sign(parameters);
+
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("X-MBX-APIKEY", user.ApiPublicKey);
+                response = client.GetAsync(url).Result.Content.ReadAsStringAsync().Result;
+            }
+
+            response = response.Substring(response.IndexOf('['));
+            response = response.Trim('}');
+
+            List<BitrueWithdrawalDeserialization> rawWithdrawals = BitrueWithdrawalDeserialization.DeserializeWithdrawal(response);
+            List<IWithdrawal> result = new List<IWithdrawal>();
+
+            foreach (var rawWithdrawal in rawWithdrawals)
+            {
+                result.Add(BitrueWithdrawal.ConvertToWithdrawal(rawWithdrawal));
+            }
+
+            return result;
+        }
     }
 }

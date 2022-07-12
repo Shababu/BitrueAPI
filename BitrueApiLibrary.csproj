@@ -15,8 +15,9 @@
     <PackageTags>Binance API Trade Trading Crypto Bitcoin XRP</PackageTags>
     <AssemblyVersion>1.0.2</AssemblyVersion>
     <FileVersion>1.0.2</FileVersion>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <PackageId>BitrueAPI</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,8 +28,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BinanceAPI" Version="1.0.5" />
-    <PackageReference Include="TradingCommonTypes" Version="1.1.7" />
+    <PackageReference Include="BinanceAPI" Version="1.0.6" />
+    <PackageReference Include="TradingCommonTypes" Version="1.1.8" />
   </ItemGroup>
 
   <ItemGroup>
