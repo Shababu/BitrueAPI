@@ -13,9 +13,9 @@
     <Copyright>Copyright (c) Shababus 2022</Copyright>
     <RepositoryUrl>https://github.com/Shababu/BitrueAPI</RepositoryUrl>
     <PackageTags>Binance API Trade Trading Crypto Bitcoin XRP</PackageTags>
-    <AssemblyVersion>1.0.2</AssemblyVersion>
-    <FileVersion>1.0.2</FileVersion>
-    <Version>1.0.3</Version>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+    <Version>1.0.5</Version>
     <PackageId>BitrueAPI</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BinanceAPI" Version="1.0.6" />
+    <PackageReference Include="BinanceAPI" Version="1.0.7" />
     <PackageReference Include="TradingCommonTypes" Version="1.1.8" />
   </ItemGroup>
 
