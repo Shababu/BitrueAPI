@@ -159,32 +159,30 @@ namespace BitrueApiLibrary
 
             foreach (var position in positions)
             {
-                var currentPosition = openOrders.Where(o => o.OrderId.ToString() == position.OrderId).FirstOrDefault();
+                //var currentPosition = openOrders.Where(o => o.OrderId.ToString() == position.OrderId).FirstOrDefault();
+                position.Status = GetOrderStatus(user, position, position.Symbol);
 
-                if (currentPosition == null)
+                if (!position.IsBought && position.IsBuyOrderPlaced && position.Status == "FILLED")
                 {
-                    if (position.IsBought)
+                    position.IsBought = true;
+                    position.InspectSpotPosition();
+                    newLimitOrder = PlaceNewLimitOrder(user, position.Symbol, Sides.SELL, position.Amount, position.SellingPrice);
+                    UpdateOrderStatusAndId(position, newLimitOrder);
+                    position.IsSellOrderPlaced = true;
+                    position.InspectSpotPosition();
+                }
+                else if (position.IsSellOrderPlaced && position.Status == "FILLED")
+                {
+                    position.IsBought = position.IsBuyOrderPlaced = position.IsSellOrderPlaced = false;
+                    position.InspectSpotPosition();
+                    if(increaseAmount)
                     {
-                        position.IsBought = position.IsBuyOrderPlaced = position.IsSellOrderPlaced = false;
-                        position.InspectSpotPosition();
-                        if (increaseAmount == true)
-                        {
-                            IncreaseAmount(position);
-                        }
-                        newLimitOrder = PlaceNewLimitOrder(user, position.Symbol, Sides.BUY, position.Amount, position.BuyingPrice);
-                        UpdateOrderStatusAndId(position, newLimitOrder);
-                        position.IsBuyOrderPlaced = true;
-                        position.InspectSpotPosition();
+                        IncreaseAmount(position);
                     }
-                    else
-                    {
-                        position.IsBought = true;
-                        position.InspectSpotPosition();
-                        newLimitOrder = PlaceNewLimitOrder(user, position.Symbol, Sides.SELL, position.Amount, position.SellingPrice);
-                        UpdateOrderStatusAndId(position, newLimitOrder);
-                        position.IsSellOrderPlaced = true;
-                        position.InspectSpotPosition();
-                    }
+                    newLimitOrder = PlaceNewLimitOrder(user, position.Symbol, Sides.BUY, position.Amount, position.BuyingPrice);
+                    position.IsBuyOrderPlaced = true;
+                    UpdateOrderStatusAndId(position, newLimitOrder);
+                    position.InspectSpotPosition();
                 }
             }
         }
@@ -202,7 +200,7 @@ namespace BitrueApiLibrary
             string middleValueDecimal = middleValueInt.Split(',')[1][..1];
 
             middleValueInt = middleValueInt.Split(',')[0];
-            position.Amount = Convert.ToDecimal((middleValueInt + "," + middleValueDecimal));
+            position.Amount = Math.Round(Convert.ToDecimal((middleValueInt + "," + middleValueDecimal)));
         }
     }
 }
